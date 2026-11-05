@@ -99,12 +99,101 @@ const setAvailability = async (req, res, next) => {
       );
   
       res.status(200).json({
-        message: `All appointments between professor ${professorId} and student ${studentId} have been canceled.,`
+        message: `All appointments between professor ${professorId} and student ${studentId} have been canceled.`
       });
-  
+
     } catch (error) {
       console.error("Error cancelling appointments:", error);
       return next(new HttpError(error));
     }
   };
-export {setAvailability, cancelAppointments};
+
+// Controller to update an existing free appointment timing without removing it from DB
+const updateAvailability = async (req, res, next) => {
+  try {
+    const availabilityId = req.params.availabilityId || req.body.availabilityId;
+    const { startTime, endTime } = req.body;
+    const professorId = req.user.id;
+
+    if (!availabilityId || !mongoose.Types.ObjectId.isValid(availabilityId)) {
+      return next(new HttpError("Invalid or missing availability slot ID", 400));
+    }
+
+    if (!startTime || !endTime) {
+      return next(new HttpError("Both startTime and endTime are required", 400));
+    }
+
+    const start = new Date(startTime);
+    const end = new Date(endTime);
+
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      return next(new HttpError("Invalid date format provided for startTime or endTime", 400));
+    }
+
+    if (start >= end) {
+      return next(new HttpError("Start time must be before end time", 400));
+    }
+
+    // Find the existing availability slot
+    const availability = await Availability.findById(availabilityId);
+    if (!availability) {
+      return next(new HttpError("Availability slot not found", 404));
+    }
+
+    // Verify that the slot belongs to this authenticated professor
+    if (availability.professorId.toString() !== professorId.toString()) {
+      return next(new HttpError("Access denied: You can only update your own availability slots", 403));
+    }
+
+    // Check if there are active (booked) appointments in this slot window
+    const bookedAppointment = await Appointment.findOne({
+      professorId: new mongoose.Types.ObjectId(professorId),
+      status: "booked",
+      time: { $gte: availability.startTime, $lte: availability.endTime }
+    });
+
+    if (bookedAppointment) {
+      return next(new HttpError("Cannot update timing: This slot already has an active booked appointment. Only free slots can be updated.", 400));
+    }
+
+    // Check for overlap with other availability slots of this professor (excluding current slot)
+    const overlappingSlot = await Availability.findOne({
+      _id: { $ne: new mongoose.Types.ObjectId(availabilityId) },
+      professorId: new mongoose.Types.ObjectId(professorId),
+      $or: [
+        { startTime: { $lt: end }, endTime: { $gt: start } }
+      ]
+    });
+
+    if (overlappingSlot) {
+      return next(new HttpError("The updated time slot overlaps with another existing availability slot", 400));
+    }
+
+    // Update existing document in place without removing it from database
+    availability.startTime = start;
+    availability.endTime = end;
+    await availability.save();
+
+    const formattedStartTime = moment.utc(availability.startTime).format('MMMM Do YYYY, h:mm:ss a');
+    const formattedEndTime = moment.utc(availability.endTime).format('MMMM Do YYYY, h:mm:ss a');
+
+    res.status(200).json({
+      message: "Free slot timing updated successfully without removing existing record",
+      availability: {
+        _id: availability._id,
+        id: availability._id,
+        professorId: availability.professorId,
+        startTime: formattedStartTime,
+        endTime: formattedEndTime,
+        rawStartTime: availability.startTime,
+        rawEndTime: availability.endTime
+      }
+    });
+
+  } catch (error) {
+    console.error("Error updating availability timing:", error);
+    return next(new HttpError("Failed to update availability slot", 500));
+  }
+};
+
+export { setAvailability, cancelAppointments, updateAvailability };

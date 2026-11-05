@@ -1,0 +1,558 @@
+{
+	"info": {
+		"_postman_id": "c1f7a0b2-8d4e-4f33-8a9d-unque2026test",
+		"name": "UnQue 2.0 College Appointment System",
+		"description": "Postman Collection for UnQue College Appointment System demonstrating the 10-step evaluation flow on EC2 and DocumentDB.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "0. Health Check",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/health",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"health"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Step 0.1 - Register Student A1",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"Student A1\",\n  \"email\": \"studenta1@unque.me\",\n  \"password\": \"pass123\",\n  \"confirmPassword\": \"pass123\",\n  \"role\": \"student\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/users/register",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"users",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Step 0.2 - Register Professor P1",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"Professor P1\",\n  \"email\": \"professorp1@unque.me\",\n  \"password\": \"pass123\",\n  \"confirmPassword\": \"pass123\",\n  \"role\": \"professor\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/users/register",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"users",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Step 0.3 - Register Student A2",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"name\": \"Student A2\",\n  \"email\": \"studenta2@unque.me\",\n  \"password\": \"pass123\",\n  \"confirmPassword\": \"pass123\",\n  \"role\": \"student\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/users/register",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"users",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Step 1 - Student A1 Authenticates",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();",
+							"if (jsonData.token) {",
+							"    pm.environment.set(\"tokenA1\", jsonData.token);",
+							"    pm.environment.set(\"studentA1Id\", jsonData.id);",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"email\": \"studenta1@unque.me\",\n  \"password\": \"pass123\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/users/login",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"users",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Step 2 - Professor P1 Authenticates",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();",
+							"if (jsonData.token) {",
+							"    pm.environment.set(\"tokenP1\", jsonData.token);",
+							"    pm.environment.set(\"professorId\", jsonData.id);",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"email\": \"professorp1@unque.me\",\n  \"password\": \"pass123\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/users/login",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"users",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Step 3a - Professor P1 specifies Slot T1",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{tokenP1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"startTime\": \"2026-11-15T09:00:00.000Z\",\n  \"endTime\": \"2026-11-15T10:00:00.000Z\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/professor/availability",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"professor",
+						"availability"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Step 3b - Professor P1 specifies Slot T2",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{tokenP1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"startTime\": \"2026-11-15T10:30:00.000Z\",\n  \"endTime\": \"2026-11-15T11:30:00.000Z\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/professor/availability",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"professor",
+						"availability"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Step 3c - Professor P1 specifies Slot T3 (Free Slot)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();",
+							"if (jsonData.availability && (jsonData.availability._id || jsonData.availability.id)) {",
+							"    pm.environment.set(\"slot3Id\", jsonData.availability._id || jsonData.availability.id);",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{tokenP1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"startTime\": \"2026-11-15T14:00:00.000Z\",\n  \"endTime\": \"2026-11-15T15:00:00.000Z\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/professor/availability",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"professor",
+						"availability"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Step 4 - Student A1 views available slots for P1",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{tokenA1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/general/professor/{{professorId}}/availability",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"general",
+						"professor",
+						"{{professorId}}",
+						"availability"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Step 5 - Student A1 books appointment for T1",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{tokenA1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"professorId\": \"{{professorId}}\",\n  \"time\": \"2026-11-15T09:30:00.000Z\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/general/book",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"general",
+						"book"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Step 6 - Student A2 Authenticates",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();",
+							"if (jsonData.token) {",
+							"    pm.environment.set(\"tokenA2\", jsonData.token);",
+							"    pm.environment.set(\"studentA2Id\", jsonData.id);",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"email\": \"studenta2@unque.me\",\n  \"password\": \"pass123\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/users/login",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"users",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Step 7 - Student A2 books appointment for T2",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{tokenA2}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"professorId\": \"{{professorId}}\",\n  \"time\": \"2026-11-15T11:00:00.000Z\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/general/book",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"general",
+						"book"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Step 8 - Professor P1 updates timing of free slot T3 [NEW API]",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{tokenP1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"startTime\": \"2026-11-15T15:30:00.000Z\",\n  \"endTime\": \"2026-11-15T16:30:00.000Z\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/professor/availability/{{slot3Id}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"professor",
+						"availability",
+						"{{slot3Id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Step 9 - Professor P1 cancels appointment with Student A1",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{tokenP1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PATCH",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/professor/cancel-appointments/{{studentA1Id}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"professor",
+						"cancel-appointments",
+						"{{studentA1Id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Step 10 - Student A1 checks appointments (no pending)",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{tokenA1}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/general/appointments",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"general",
+						"appointments"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

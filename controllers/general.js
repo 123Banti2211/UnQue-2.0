@@ -25,8 +25,12 @@ const getAvailableSlots = async (req, res, next) => {
 
         // Format the available slots using moment.js
         const availableSlots = availability.map(avail => ({
-            StartTime: moment(avail.startTime).format('MMMM Do YYYY, h:mm:ss a'),
-            EndTime: moment(avail.endTime).format('MMMM Do YYYY, h:mm:ss a'),
+            id: avail._id,
+            _id: avail._id,
+            startTime: avail.startTime,
+            endTime: avail.endTime,
+            StartTime: moment.utc(avail.startTime).format('MMMM Do YYYY, h:mm:ss a'),
+            EndTime: moment.utc(avail.endTime).format('MMMM Do YYYY, h:mm:ss a'),
         }));
 
         res.status(200).json({ availableSlots });
@@ -118,7 +122,7 @@ const bookAppointment = async (req, res, next) => {
   
       // Format the response to show the appointment details and times
       const formattedAppointments = appointments.map(appointment => ({
-        professor: appointment.professorId.name,  // Show professor's name
+        professor: appointment.professorId?.name || "Professor",  // Show professor's name safely
         appointmentTime: moment.utc(appointment.time).format('MMMM Do YYYY, h:mm:ss a'),  // Format time with moment.js
         status: appointment.status,
       }));
